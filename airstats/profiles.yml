@@ -1,0 +1,13 @@
+airstats:
+  outputs:
+    dev:
+      type: snowflake
+      account: mmsarnl-np16286
+      user: YB5015
+      password: eEtrjS9ZbzaceNC
+      role: ANALYST_ROLE
+      warehouse: AIRSTAT_WH
+      database: AIRSTATS
+      schema: DEV
+      threads: 1
+  target: dev
