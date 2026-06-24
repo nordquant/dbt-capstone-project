@@ -217,4 +217,9 @@ dbt_internal_packages/
 package-lock.yml
 logs/
 
-/airstats
+# /airstats
+profiles.yml
+# dbt_project.yml
+.gitignore
+.user.yml
+.gitkeep

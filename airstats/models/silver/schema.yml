@@ -1,0 +1,129 @@
+version: 2
+
+models:
+  - name: silver_airports
+    description: '{{ doc("silver_airports_description") }}'
+    columns:
+      - name: airport_ident
+        description: "Unique ICAO identifier for the airport"
+        data_tests:
+          - unique
+          - not_null
+
+      - name: airport_type
+        description: '{{ doc("airport_type_description") }}'
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - small_airport
+                  - medium_airport
+                  - large_airport
+                  - heliport
+                  - seaplane_base
+                  - balloonport
+                  - closed
+
+      - name: airport_name
+        description: "Official name of the airport"
+        data_tests:
+          - not_null
+
+      - name: airport_lat
+        description: "Latitude coordinate in decimal degrees"
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: -90
+                max_value: 90
+      - name: airport_long
+        description: "Longitude coordinate in decimal degrees"
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: -180
+                max_value: 180
+      - name: continent
+        description: "Continent code where the airport is located"
+
+      - name: iso_country
+        description: "ISO country code"
+
+      - name: iso_region
+        description: "ISO region code"
+
+  - name: silver_runways
+    description: "Runway specifications linked to airports, including dimensions and surface type"
+    columns:
+      - name: runway_id
+        description: "Unique identifier for the runway"
+        data_tests:
+          - unique
+          - not_null
+
+      - name: airport_ident
+        description: "Reference to the parent airport"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_airports')
+                field: airport_ident
+              config:
+                severity: warn
+      - name: runway_length_ft
+        description: "Length of the runway in feet"
+
+      - name: runway_width_ft
+        description: "Width of the runway in feet"
+
+      - name: runway_surface
+        description: "Surface material of the runway (e.g., asphalt, concrete, grass). Unknown values are marked as __UNKNOWN__"
+        data_tests:
+          - not_null
+
+      - name: runway_lighted
+        description: "Whether the runway has lighting (1=yes, 0=no)"
+
+      - name: runway_closed
+        description: "Whether the runway is closed (1=yes, 0=no)"
+
+  - name: silver_airport_comments
+    description: "User-submitted comments about airports, loaded incrementally"
+    columns:
+      - name: comment_id
+        description: "Unique identifier for the comment"
+        data_tests:
+          - unique
+          - not_null
+
+      - name: airport_ident
+        description: "Reference to the airport being commented on"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_airports')
+                field: airport_ident
+              config:
+                severity: warn
+      - name: comment_timestamp
+        description: "When the comment was posted"
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              arguments:
+                column_type: timestamp_ntz
+      - name: member_nickname
+        description: "Username of the commenter. Unknown users are marked as __UNKNOWN__"
+
+      - name: comment_subject
+        description: "Subject line of the comment"
+
+      - name: comment_body
+        description: "Full text of the comment"
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        description: "Timestamp when the record was loaded into the silver layer"
